@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Orario VT</title>
+        <link rel="stylesheet" href="OrarioStyle.css">
+        <link rel="icon" href="Logo-VeronaTrento.png" type="image/png">
+        <link rel="apple-touch-icon" href="Logo-VeronaTrento.png">
+        <meta charset="utf-8">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+
+            var ListaOrari = JSON.parse(`[
+                {
+                    "ID": "0",
+                    "Nome": "ORARIO DEFINITIVO",
+                    "urlVT": "Orario24-25//VT.xml",
+                    "urlMM": "Orario24-25//MM.xml",
+                    "urlSR": "",
+                    "DataPartenzaSettimana": "2025-04-28"
+                }
+            ]`);
+
+            function getSettimana() {
+                let o = ListaOrari[0];
+                let thedate = moment(o.DataPartenzaSettimana);
+
+                let resultdiff = moment().add(2, "days").diff(thedate, "week");
+                            
+                return (resultdiff % 4 + 1);
+            }
+            
+            function getHoursOnly(durata){
+                let n_ore = durata.split(":")[0];
+                return parseInt(n_ore, 10);
+            }
+
+            function stampaSettimana(lezioni, settimana, container){
+                let i = 0;                    
+                container.innerHTML = "";
+                
+
+                lezioni.forEach(lezione => {         
+                    if(i%5 == 0){
+                        switch (i){
+                            case 0:
+                                container.innerHTML += `<p class='giorno'>LUNEDÌ ${settimana}</p>`;
+                            break;
+                            case 5:
+                                container.innerHTML += `<p class='giorno'>MARTEDÌ ${settimana}</p>`;
+                            break;
+                            case 10:
+                                container.innerHTML += `<p class='giorno'>MERCOLEDÌ ${settimana}</p>`;
+                            break;
+                            case 15:
+                                container.innerHTML += `<p class='giorno'>GIOVEDÌ ${settimana}</p>`;
+                            break;
+                            case 20:
+                                container.innerHTML += `<p class='giorno'>VENERDÌ ${settimana}</p>`;
+                            break;
+                            }
+                        }
+                    for(let n = getHoursOnly(lezione.DURATION); n > 0 ; n--){
+                        container.innerHTML += `<p class='orario'>${lezione.SUBJECT} (${lezione.ROOM})</p>`;
+                        i++;
+                    }
+                });
+            }
+
+            function stampaGiorno(lezioni, giorno, settimana, container){
+                container.innerHTML = "";
+
+                switch (giorno){
+                    case 1:
+                        lezioni = lezioni.filter(lezione => lezione.DAY.startsWith("LUN"));
+                        container.innerHTML += `<p class='giorno'>LUNEDÍ ${settimana}</p>`;
+                        lezioni.forEach(lezione => {
+                            for(let n = getHoursOnly(lezione.DURATION); n > 0 ; n--){
+                                container.innerHTML += `<p class='orario'>${lezione.SUBJECT}(${lezione.ROOM})</p>`;
+                            }
+                        })
+                        break;
+                        case 2:
+                        lezioni = lezioni.filter(lezione => lezione.DAY.startsWith("MAR"));
+                        container.innerHTML += `<p class='giorno'>MARTEDÍ ${settimana}</p>`;
+                        lezioni.forEach(lezione => {
+                            for(let n = getHoursOnly(lezione.DURATION); n > 0 ; n--){
+                                container.innerHTML += `<p class='orario'>${lezione.SUBJECT}(${lezione.ROOM})</p>`;
+                            }
+                        })
+                        break;
+                        case 3:
+                        lezioni = lezioni.filter(lezione => lezione.DAY.startsWith("MER"));
+                        container.innerHTML += `<p class='giorno'>MERCOLEDÍ ${settimana}</p>`;
+                        lezioni.forEach(lezione => {
+                            for(let n = getHoursOnly(lezione.DURATION); n > 0 ; n--){
+                                container.innerHTML += `<p class='orario'>${lezione.SUBJECT}(${lezione.ROOM})</p>`;
+                            }
+                        })
+                        break;
+                        case 4:
+                            lezioni = lezioni.filter(lezione => lezione.DAY.startsWith("GIO"));
+                            container.innerHTML += `<p class='giorno'>GIOVEDÍ ${settimana}</p>`;
+                            lezioni.forEach(lezione => {
+                                for(let n = getHoursOnly(lezione.DURATION); n > 0 ; n--){
+                                    container.innerHTML += `<p class='orario'>${lezione.SUBJECT}(${lezione.ROOM})</p>`;
+                                }
+                            })
+                            break;
+                        case 5:
+                            lezioni = lezioni.filter(lezione => lezione.DAY.startsWith("VEN"));
+                            container.innerHTML += `<p class='giorno'>VENERDÍ ${settimana}</p>`;
+                            lezioni.forEach(lezione => {
+                                for(let n = getHoursOnly(lezione.DURATION); n > 0 ; n--){
+                                    container.innerHTML += `<p class='orario'>${lezione.SUBJECT}(${lezione.ROOM})</p>`;
+                                }
+                            })
+                        break;
+                        default:
+                            container.innerHTML += "<p class='giorno'>NON C'È SCUOLA</p>";
+                        }
+            }
+
+            var sett = getSettimana();
+            var url_rest = encodeURI("https://vt2020.myqnapcloud.com:8081/orario/nocors.php?url=https://vt2020.myqnapcloud.com:8081/orario/orario_rest.php");
+        </script> 
+        <style>
+        #loader{
+            display:none;
+            align-items: center;
+
+        }
+        #points{
+            display:flex;
+            border: 1px white solid;
+        }
+        .caricamento{
+            display: inline-block;
+            animation: up-down 1s infinite ease-in-out;
+            color: white;
+        }
+
+        #punto1{animation-delay: 0.15s;}
+        #punto2{animation-delay: 0.40s;}
+        #punto3{animation-delay: 0.65s;}
+
+        @keyframes up-down {
+            0%, 40%{
+                transform: translateY(0);
+            }
+            70%{
+                transform: translateY(-5px);
+            }
+            100%{transform: translateY(0);}
+        }
+    </style>
+    </head>
+    <body>
+        <img src="vt-logo-removebg-preview.png" alt="logo">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <h1>Orario</h1>
+            <form id="form-classe">
+                <select id="seleziona-classe" style="min-width: 80px;">
+                    <option class="opzione" hidden selected required>CLASSE</option>
+                </select>
+                <script>
+                        var classi = document.getElementById("seleziona-classe");
+                        fetch(url_rest+ "%3Fid=" + ListaOrari[0].ID + "%26classi")//url_rest+ "?id=" + ListaOrari[0].ID + "&classi"
+                            .then(response => response.text())
+                            .then(d => {
+                                let data = JSON.parse(d);
+                                let elenco = data.classi;
+
+                                elenco.forEach(classe => {
+                                    let opzione = document.createElement("option");
+                                    opzione.value = classe;
+                                    opzione.textContent = classe;
+                                    opzione.classList.add("opzione");
+                                    classi.appendChild(opzione); 
+                                })
+                            })                                             
+                    </script>
+                    <script>
+                        document.getElementById("form-classe").addEventListener("change", function(e){
+                            e.preventDefault();
+                            localStorage.setItem("classe", classi.value);
+                        })
+                    </script>
+            </form>
+        </div>
+        <form id="modulo">
+            <label>In che settimana ti trovi</label>
+            <select id="settimane" required>
+                <option hidden></option>
+                <option value="1" class="opzione">1</option>
+                <option value="2" class="opzione">2</option>
+                <option value="3" class="opzione">3</option>
+                <option value="4" class="opzione">4</option>
+            </select>
+            <br><br>
+            <label>Selezionare una delle tre opzioni:</label>
+            <br>
+            <label>OGGI<input type="radio" id="oggi" name="opzione" value="oggi" required></label>
+            <br>
+            <label>DOMANI<input type="radio" id="domani" name="opzione" value="domani"></label>
+            <br>
+            <label>SETTIMANA<input type="radio" id="settimana" name="opzione" value="settimana"></label>
+            <br><br>
+            <button type="button" id="bottone_mostra" class="bottoni">SETTIMANA CORRENTE</button>
+        </form>
+        <script>
+
+            document.getElementById("modulo").addEventListener("change", function(e){
+                e.preventDefault();
+                if(!localStorage.getItem("classe")){
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Attenzione',
+                        text: 'Seleziona la classe in alto a destra, puoi farlo anche una volta sola per dispositivo'
+                    });
+
+                    return;
+                }
+                container.classList.remove("mostra");
+                document.getElementById("loader").style.display = "flex";
+
+                fetch(url_rest + "%3Fid=" + ListaOrari[0].ID + "%26classe=" +localStorage.getItem("classe"))//url_rest + "?id=" + ListaOrari[0].ID + "&classe=" + classi.value
+                    .then(response => response.text())
+                    .then(d => {
+                        let data = JSON.parse(d);
+                        let select = document.getElementById("settimane").value;
+                        let option = document.querySelector('input[name="opzione"]:checked').value;
+                        let lezioni = data.lezioni.filter(lezione => lezione.DAY.endsWith(select));
+                        let day = new Date().getDay();
+
+                        switch (option){
+                            case "oggi":
+
+                                stampaGiorno(lezioni, day, select, container);
+
+                            break;
+
+                            case "domani":
+
+                                stampaGiorno(lezioni, (day+1) % 7, select, container);
+                                
+                            break;
+
+                            case "settimana":
+
+                                stampaSettimana(lezioni, select, container);
+                                
+                            break;
+                        }
+                        container.classList.add("mostra");
+                    })
+                    .finally(() => {
+                        document.getElementById("loader").style.display = "none";
+                    })
+            });
+
+        </script>
+        <div id="mostra_corrente"></div>
+        <div id="loader" class="loader">
+            <p>CARICAMENTO</p>
+            <p class="caricamento" id="punto1">.</p>
+            <p class="caricamento" id="punto2">.</p>
+            <p class="caricamento" id="punto3">.</p>
+        </div>
+        <script>
+
+            var container = document.getElementById("mostra_corrente");
+
+            document.getElementById("bottone_mostra").addEventListener("click", function() {
+                if(!localStorage.getItem("classe")){
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Attenzione',
+                        text: 'Seleziona la classe in alto a destra, puoi farlo anche una volta sola per dispositivo'
+                    });
+                    return;
+                }
+
+                container.classList.remove("mostra");
+                document.getElementById("loader").style.display = "flex";
+
+                fetch(url_rest + "%3Fid=" + ListaOrari[0].ID + "%26classe=" +localStorage.getItem("classe"))//url_rest + "?id=" + ListaOrari[0].ID + "&classe=" + classi.value
+                    .then(response => response.text())
+                    .then(d => {
+                        let data = JSON.parse(d);
+                        let lezioni = data.lezioni.filter(lezione => lezione.DAY.endsWith(sett.toString()));
+                        
+                        stampaSettimana(lezioni, sett, container);
+                        container.classList.add("mostra");
+                    })
+                    .finally(()=>{
+                        document.getElementById("loader").style.display = "none";
+                    })
+            });
+                
+        </script>
+    </body>
+</html>
